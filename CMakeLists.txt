@@ -37,7 +37,8 @@ target_link_libraries(libaethercopy PUBLIC
 # ============================================
 # ПРОГРАММА
 # ============================================
-add_executable(aethercopy src/main.cpp)     # ← программа с именем aethercopy
+add_executable(aethercopy src/main.cpp
+    README.md)     # ← программа с именем aethercopy
 
 target_link_libraries(aethercopy PRIVATE libaethercopy)
 
@@ -49,16 +50,19 @@ if(BUILD_TESTS)
 
     add_executable(aethercopy_tests
         tests/test_filter.cpp
+        tests/test_thread_pool.cpp
     )
 
     target_link_libraries(aethercopy_tests
         libaethercopy
         GTest::gtest
         GTest::gtest_main
+        Threads::Threads
     )
 
     target_include_directories(aethercopy_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
 
     enable_testing()

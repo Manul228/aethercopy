@@ -27,8 +27,3 @@ TEST(FormatFilterTest, EmptyFilter) {
 
     EXPECT_TRUE(filter.shouldCopy("anything"));
 }
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

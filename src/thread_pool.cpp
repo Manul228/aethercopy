@@ -5,18 +5,23 @@ ThreadPool::ThreadPool(size_t num_threads)
     : shutdown_requested_(false)
     , busy_threads_(0)
 {
-    for (size_t i; i < num_threads; ++i) {
+    for (size_t i = 0; i < num_threads; ++i) {
         workers_.emplace_back(ThreadWorker(this));
     }
 }
 
-ThreadPool::~ThreadPool()
+void ThreadPool::shutdown()
 {
     {
         std::lock_guard<std::mutex> lock(mtx_);
         shutdown_requested_ = true;
     }
     cv_.notify_all();
+}
+
+ThreadPool::~ThreadPool()
+{
+    shutdown();
 
     for (auto &w : workers_) {
         if (w.joinable())
@@ -24,26 +29,10 @@ ThreadPool::~ThreadPool()
     }
 }
 
-template<typename F, typename... Args>
-auto ThreadPool::enqueue(F &&f, Args &&...args)
-    -> std::future<typename std::invoke_result_t<F, Args...>>
-// -> std::future<typename std::invoke_result<F, Args...>>::type
-{
-    using R = std::invoke_result_t<F, Args...>;
-    std::packaged_task<R()> task(std::forward<F>(f), std::forward<Args>(args)...);
-
-    auto fut = task.get_future();
-    {
-        std::lock_guard<std::mutex> lock(mtx_);
-        queue_.push(task);
-        cv_.notify_one();
-    }
-
-    return fut;
-}
-
 ThreadPool::ThreadWorker::ThreadWorker(ThreadPool *p)
     : tp_(p) {};
+
+ThreadPool::ThreadWorker::~ThreadWorker() = default;
 
 void ThreadPool::ThreadWorker::operator()()
 {
@@ -51,6 +40,7 @@ void ThreadPool::ThreadWorker::operator()()
 
     while (true) {
         // когда в принципе пора проснуться
+        // берёт блокировку после предыдущего unlock
         tp_->cv_.wait(lock,
                       [this]() { return tp_->shutdown_requested_ or not tp_->queue_.empty(); });
 
@@ -61,7 +51,6 @@ void ThreadPool::ThreadWorker::operator()()
             auto f = std::move(tp_->queue_.front());
             tp_->queue_.pop();
 
-            // локать дальше не надо
             lock.unlock();
             tp_->busy_threads_.fetch_add(1);
             try {
@@ -70,6 +59,7 @@ void ThreadPool::ThreadWorker::operator()()
                 std::clog << "Error when try to execute task: " << e.what() << '\n';
             }
             tp_->busy_threads_.fetch_sub(1);
+            lock.lock();
         }
     }
 };
