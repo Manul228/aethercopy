@@ -21,10 +21,13 @@ add_library(libaethercopy STATIC
     src/detector.cpp
     include/aethercopy/thread_pool.cpp
     src/async_copier.cpp
-    src/archive_processor.cpp
-    include/aethercopy/archive_processor.h
+    src/BackupEngine.cpp
+    include/aethercopy/BackupEngine.h
     include/aethercopy/mime_types.h
     src/mime_types.cpp
+    include/aethercopy/copiers/ICopier.h
+    include/aethercopy/copiers/SyncCopier.h
+    src/copiers/SyncCopier.cpp
 )
 
 target_include_directories(libaethercopy PUBLIC
@@ -45,7 +48,7 @@ target_link_libraries(libaethercopy PUBLIC
 # ПРОГРАММА
 # ============================================
 add_executable(aethercopy src/main.cpp
-    include/aethercopy/copiers/ICopier.h)
+)
 
 target_link_libraries(aethercopy PRIVATE libaethercopy)
 

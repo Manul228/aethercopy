@@ -1,6 +1,8 @@
 #ifndef ICOPIER_H
 #define ICOPIER_H
 
+#include <string>
+
 namespace aethercopy {
 
 class ICopier
