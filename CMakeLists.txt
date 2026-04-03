@@ -10,35 +10,42 @@ option(BUILD_TESTS "Build tests" ON)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(URING REQUIRED liburing)
 pkg_check_modules(MAGIC REQUIRED libmagic)
+pkg_check_modules(ARCHIVE REQUIRED libarchive)
 find_package(Threads REQUIRED)
 
 # ============================================
 # БИБЛИОТЕКА
 # ============================================
-add_library(libaethercopy STATIC           # ← переименовал в aethercopy_lib
+add_library(libaethercopy STATIC
     src/filter.cpp
     src/detector.cpp
-    src/thread_pool.cpp
+    include/aethercopy/thread_pool.cpp
     src/async_copier.cpp
+    src/archive_processor.cpp
+    include/aethercopy/archive_processor.h
+    include/aethercopy/mime_types.h
+    src/mime_types.cpp
 )
 
 target_include_directories(libaethercopy PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${URING_INCLUDE_DIRS}
     ${MAGIC_INCLUDE_DIRS}
+    ${ARCHIVE_INCLUDE_DIRS}
 )
 
 target_link_libraries(libaethercopy PUBLIC
     Threads::Threads
     ${URING_LIBRARIES}
     ${MAGIC_LIBRARIES}
+    ${ARCHIVE_LIBRARIES}
 )
 
 # ============================================
 # ПРОГРАММА
 # ============================================
 add_executable(aethercopy src/main.cpp
-    README.md)     # ← программа с именем aethercopy
+    include/aethercopy/copiers/ICopier.h)
 
 target_link_libraries(aethercopy PRIVATE libaethercopy)
 

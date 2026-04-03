@@ -5,7 +5,6 @@
 
 namespace aethercopy {
 
-// Простой детектор формата файла через libmagic
 class FormatDetector {
 public:
     FormatDetector();
@@ -15,7 +14,7 @@ public:
     std::string detect(const std::string& filepath);
 
 private:
-    void* magic_cookie_;  // opaque pointer to magic_t
+    void *magic_cookie_;
 };
 
 } // namespace aethercopy

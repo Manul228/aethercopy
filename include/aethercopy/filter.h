@@ -19,9 +19,9 @@ public:
     bool shouldCopy(const std::string& mime_type) const;
 
 private:
-    std::vector<std::string> include_list_;
-    std::vector<std::string> exclude_list_;
-    bool include_mode_{false};  // true = include only, false = exclude
+    std::vector<std::string> includeList_;
+    std::vector<std::string> excludeList_;
+    bool includeMode_{false}; // true = include only, false = exclude
 };
 
 } // namespace aethercopy

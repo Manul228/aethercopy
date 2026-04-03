@@ -1,5 +1,5 @@
-#ifndef THREAD_POOL_H
-#define THREAD_POOL_H
+#ifndef AETHERCOPY_THREAD_POOL_H
+#define AETHERCOPY_THREAD_POOL_H
 
 #include <atomic>
 #include <condition_variable>
@@ -8,6 +8,8 @@
 #include <queue>
 #include <thread>
 #include <vector>
+
+namespace aethercopy {
 
 class ThreadPool
 {
@@ -50,11 +52,11 @@ private:
     };
 
     std::vector<std::thread> workers_;
-    std::atomic_size_t busy_threads_;
-    std::atomic_bool shutdown_requested_;
+    std::atomic_size_t busyThreads_;
+    std::atomic_bool shutdownRequested_;
     std::condition_variable cv_;
     mutable std::mutex mtx_;
     std::queue<std::move_only_function<void()>> queue_;
 };
-
+} // namespace aethercopy
 #endif
