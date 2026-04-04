@@ -19,14 +19,11 @@ find_package(Threads REQUIRED)
 add_library(libaethercopy STATIC
     src/filter.cpp
     src/detector.cpp
-    include/aethercopy/thread_pool.cpp
+    src/mime_types.cpp
     src/async_copier.cpp
     src/BackupEngine.cpp
-    include/aethercopy/BackupEngine.h
-    include/aethercopy/mime_types.h
-    src/mime_types.cpp
-    include/aethercopy/copiers/ICopier.h
-    include/aethercopy/copiers/SyncCopier.h
+    src/thread_pool.cpp
+    src/ArchiveHandlers/LibarchiveArchiveHandler.cpp
     src/copiers/SyncCopier.cpp
 )
 

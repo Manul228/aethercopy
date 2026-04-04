@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "aethercopy/ArchiveHandlers/IArchiveHandler.h"
 #include "aethercopy/copiers/ICopier.h"
 
 #include "aethercopy/filter.h"
@@ -21,44 +22,27 @@ namespace aethercopy {
 class BackupEngine : public std::enable_shared_from_this<BackupEngine>
 {
 public:
-    BackupEngine(ThreadPool &pool, ICopier &copier, const std::string &targetBase);
+    BackupEngine(ThreadPool &pool,
+                 ICopier &copier,
+                 FormatFilter &filter,
+                 IArchiveHandler &handler,
+                 const std::string &targetBase);
     ~BackupEngine();
-    void processFile(const std::string &path);
+    bool processFile(const std::string &path);
     void setTempDir(const std::string &dir);
     void setMaxMemorySize(size_t bytes);
 
 private:
-    bool isSmallArchive(const std::string &path);
-    /**
-     * @brief extractToDisk
-     * @param archivePath Путь к архиву
-     * @return путь к распакованному архиву
-     * [Документация](https://github.com/libarchive/libarchive/wiki/Examples#user-content-A_Complete_Extractor)
-     */
-    std::string extractToDisk(const std::string &archivePath);
-
-    void processDirectory(const std::string &dirPath);
+    bool processDirectory(const std::string &dirPath);
     std::string getTargetPath(const std::string &filepath, const std::string &mime);
-    void removeTempDir(const std::string &tempDir);
-
-    /**
-     * Получает размер содержимого архива
-     * [Тут примеры обхода архива](https://github.com/libarchive/libarchive/wiki/Examples)
-     * @param archivePath Путь к архиву
-     */
-    // TODO: протестировать корректность для крайних случаев
-    // (размер содержимого 0)
-    int64_t getUncompressedArchiveSize(const std::string &archivePath);
+    bool removeTempDir(const std::string &tempDir);
 
 private:
     std::string tempDir_;
     std::string targetBase_;
-    // TODO: нужно контролировать общий расход
-    // памяти и задать осмысленное значение по-умолчанию
-    size_t maxMemorySize_;
     FormatDetector detector_;
-    FormatFilter filter_;
-    int64_t cutoffSize_;
+    FormatFilter &filter_;
+    IArchiveHandler &archiveHandler_;
     ThreadPool &pool_;
     ICopier &copier_;
 };
