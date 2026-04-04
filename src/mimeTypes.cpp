@@ -1,5 +1,5 @@
 // src/mime_types.cpp
-#include "aethercopy/mime_types.h"
+#include "aethercopy/mimeTypes.h"
 
 namespace aethercopy {
 namespace mimetypes {

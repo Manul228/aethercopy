@@ -1,7 +1,7 @@
 #include "aethercopy/filter.h"
 #include <algorithm>
 
-namespace aethercopy {
+using namespace aethercopy;
 
 void FormatFilter::includeOnly(const std::vector<std::string>& formats) {
     includeList_ = formats;
@@ -13,14 +13,20 @@ void FormatFilter::exclude(const std::vector<std::string>& formats) {
     includeMode_ = false;
 }
 
-bool FormatFilter::shouldCopy(const std::string& mime_type) const {
+bool FormatFilter::shouldCopy(const std::string &mime_type) const
+{
     if (includeMode_) {
-        // Включаем только то, что в списке
+        // Пустой список = всё копируем
+        if (includeList_.empty()) {
+            return true;
+        }
         return std::find(includeList_.begin(), includeList_.end(), mime_type) != includeList_.end();
-    } else {
-        // Исключаем то, что в списке
+    }
+    else {
+        // Пустой список = ничего не исключаем
+        if (excludeList_.empty()) {
+            return true;
+        }
         return std::find(excludeList_.begin(), excludeList_.end(), mime_type) == excludeList_.end();
     }
 }
-
-} // namespace aethercopy

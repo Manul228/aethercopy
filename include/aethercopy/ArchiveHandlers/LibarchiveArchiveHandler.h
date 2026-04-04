@@ -5,9 +5,8 @@
 
 namespace aethercopy {
 
-class LibarchiveArchiveHandler : IArchiveHandler
-{
-public:
+class LibarchiveArchiveHandler : public IArchiveHandler {
+  public:
     /**
      * Получает размер содержимого архива
      * [Тут примеры обхода архива](https://github.com/libarchive/libarchive/wiki/Examples)
@@ -22,8 +21,7 @@ public:
      * @return путь к распакованному архиву
      * [Документация](https://github.com/libarchive/libarchive/wiki/Examples#user-content-A_Complete_Extractor)
      */
-    std::string extractToDisk(const std::string &archivePath,
-                              const std::string &targetPath) override;
+    bool extractToDisk(const std::string &archivePath, const std::string &targetPath) override;
 };
 
 } // namespace aethercopy

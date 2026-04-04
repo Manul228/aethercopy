@@ -1,11 +1,9 @@
-#include "aethercopy/thread_pool.h"
+#include "aethercopy/ThreadPool.h"
 #include <iostream>
 
-namespace aethercopy {
+using namespace aethercopy;
 
-ThreadPool::ThreadPool(size_t num_threads)
-    : shutdownRequested_(false)
-    , busyThreads_(0)
+ThreadPool::ThreadPool(size_t num_threads) : shutdownRequested_(false), busyThreads_(0)
 {
     for (size_t i = 0; i < num_threads; ++i) {
         workers_.emplace_back(ThreadWorker(this));
@@ -31,9 +29,7 @@ ThreadPool::~ThreadPool()
     }
 }
 
-ThreadPool::ThreadWorker::ThreadWorker(ThreadPool *p)
-    : tp_(p) {};
-
+ThreadPool::ThreadWorker::ThreadWorker(ThreadPool *p) : tp_(p) {};
 ThreadPool::ThreadWorker::~ThreadWorker() = default;
 
 void ThreadPool::ThreadWorker::operator()()
@@ -42,7 +38,9 @@ void ThreadPool::ThreadWorker::operator()()
 
     while (true) {
         // условие пробуждения
-        tp_->cv_.wait(lock, [this]() { return tp_->shutdownRequested_ or not tp_->queue_.empty(); });
+        tp_->cv_.wait(lock, [this]() {
+            return tp_->shutdownRequested_ or not tp_->queue_.empty();
+        });
 
         if (tp_->shutdownRequested_ and tp_->queue_.empty())
             break;
@@ -55,13 +53,21 @@ void ThreadPool::ThreadWorker::operator()()
             tp_->busyThreads_.fetch_add(1);
             try {
                 f();
-            } catch (const std::exception &e) {
+            }
+            catch (const std::exception &e) {
                 std::clog << "Error when try to execute task: " << e.what() << '\n';
             }
             tp_->busyThreads_.fetch_sub(1);
+            tp_->waitCv_.notify_one();
             lock.lock(); // убрать отсюда нельзя
         }
     }
-};
+}
 
-} // namespace aethercopy
+void ThreadPool::wait()
+{
+    std::unique_lock<std::mutex> lock(mtx_);
+    waitCv_.wait(lock, [this]() {
+        return queue_.empty() and busyThreads_.load() == 0;
+    });
+}

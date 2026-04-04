@@ -39,22 +39,26 @@ public:
     }
 
     void shutdown();
+    void wait();
 
 private:
     class ThreadWorker
     {
     public:
-        ThreadPool *tp_;
         explicit ThreadWorker(ThreadPool *p);
         ~ThreadWorker();
 
         void operator()();
+
+      private:
+        ThreadPool *tp_;
     };
 
     std::vector<std::thread> workers_;
     std::atomic_size_t busyThreads_;
     std::atomic_bool shutdownRequested_;
     std::condition_variable cv_;
+    std::condition_variable waitCv_;
     mutable std::mutex mtx_;
     std::queue<std::move_only_function<void()>> queue_;
 };

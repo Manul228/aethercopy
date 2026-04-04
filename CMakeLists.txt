@@ -19,12 +19,26 @@ find_package(Threads REQUIRED)
 add_library(libaethercopy STATIC
     src/filter.cpp
     src/detector.cpp
-    src/mime_types.cpp
-    src/async_copier.cpp
-    src/BackupEngine.cpp
-    src/thread_pool.cpp
-    src/ArchiveHandlers/LibarchiveArchiveHandler.cpp
+
+    src/mimeTypes.cpp
+    include/aethercopy/mimeTypes.h
+
+    include/aethercopy/ThreadPool.h
+    src/ThreadPool.cpp
+
+    include/aethercopy/copiers/ICopier.h
+    include/aethercopy/copiers/SyncCopier.h
     src/copiers/SyncCopier.cpp
+
+
+
+    include/aethercopy/BackupEngine.h
+    src/BackupEngine.cpp
+
+    include/aethercopy/ArchiveHandlers/IArchiveHandler.h
+    include/aethercopy/ArchiveHandlers/LibarchiveArchiveHandler.h
+    src/ArchiveHandlers/LibarchiveArchiveHandler.cpp
+
 )
 
 target_include_directories(libaethercopy PUBLIC
@@ -54,10 +68,12 @@ target_link_libraries(aethercopy PRIVATE libaethercopy)
 # ============================================
 if(BUILD_TESTS)
     find_package(GTest REQUIRED)
-
+    add_definitions(-DTEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data/")
     add_executable(aethercopy_tests
         tests/test_filter.cpp
-        tests/test_thread_pool.cpp
+        tests/test_ThreadPool.cpp
+        tests/test_BackupEngine.cpp
+        tests/test_LibarchiveHandler.cpp
     )
 
     target_link_libraries(aethercopy_tests

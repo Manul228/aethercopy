@@ -6,9 +6,9 @@
 #include "aethercopy/ArchiveHandlers/IArchiveHandler.h"
 #include "aethercopy/copiers/ICopier.h"
 
+#include "ThreadPool.h"
 #include "aethercopy/filter.h"
 #include "detector.h"
-#include "thread_pool.h"
 
 namespace aethercopy {
 
@@ -19,25 +19,28 @@ namespace aethercopy {
  * до этого не сдох
  */
 
-class BackupEngine : public std::enable_shared_from_this<BackupEngine>
-{
-public:
-    BackupEngine(ThreadPool &pool,
-                 ICopier &copier,
-                 FormatFilter &filter,
-                 IArchiveHandler &handler,
-                 const std::string &targetBase);
-    ~BackupEngine();
-    bool processFile(const std::string &path);
-    void setTempDir(const std::string &dir);
-    void setMaxMemorySize(size_t bytes);
+class BackupEngine : public std::enable_shared_from_this<BackupEngine> {
+  public:
+    BackupEngine(ThreadPool &pool, ICopier &copier, FormatFilter &filter, IArchiveHandler &handler,
+                 const std::string &targetBase, const std::string &tempDir);
 
-private:
+    BackupEngine(const BackupEngine &) = delete;
+    BackupEngine &operator=(const BackupEngine &) = delete;
+
+    BackupEngine(BackupEngine &&) = delete;
+    BackupEngine &operator=(BackupEngine &&) = delete;
+
     bool processDirectory(const std::string &dirPath);
+    void setTempDir(const std::string &dir);
+    void wait();
+
+  private:
+    bool processFile(const std::string &path);
+    std::string getUniquePath(const std::string &targetPath);
     std::string getTargetPath(const std::string &filepath, const std::string &mime);
     bool removeTempDir(const std::string &tempDir);
 
-private:
+  private:
     std::string tempDir_;
     std::string targetBase_;
     FormatDetector detector_;

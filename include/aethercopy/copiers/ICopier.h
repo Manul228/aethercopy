@@ -11,8 +11,6 @@ public:
     virtual ~ICopier() = default;
 
     virtual void copy(const std::string &src, const std::string &dst) = 0;
-
-    virtual void wait();
 };
 
 } // namespace aethercopy

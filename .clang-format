@@ -1,0 +1,68 @@
+BasedOnStyle: LLVM
+Language: Cpp
+
+# Отступы 4 пробела, без табов
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Длина строки — 100 символов
+ColumnLimit: 100
+
+# Никакие короткие функции не складываются в одну строку
+AllowShortFunctionsOnASingleLine: None
+
+# Если лямбда короткая, форматтер всё равно не будет её в одну строку
+AllowShortLambdasOnASingleLine: None
+
+# if/for/while/return/блоки
+
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+
+
+
+BreakBeforeBraces: Allman
+# BreakBeforeBraces: Stroustrup
+
+# Выравнивание операторов и аргументов
+AlignAfterOpenBracket: Always
+AlignOperands: true
+AlignTrailingComments: true
+
+# Не вставлять пробелы в скобках/скобках‑квадратных
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInCStyleCastParentheses: false
+
+# Пробел после `if`/`for`/`while`/`switch` — да
+SpacesInControlStatements: true
+
+# Пробелы вокруг операторов
+SpaceBeforeAssignmentOperators: true
+SpaceAfterCStyleCast: true
+
+# -------------------------
+# Пустые строки и блоки
+# -------------------------
+# Максимум одна пустая строка подряд
+MaxEmptyLinesToKeep: 1
+
+# Не отдельная строка для `public:`/`private:` (по умолчанию)
+IndentAccessModifiers: false
+
+# -------------------------
+# Структура файлов и макросы
+# -------------------------
+# Не ломать длинные define посередине, если возможно
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# -------------------------
+# Современный C++ (nullptr, braces и т.п.)
+# -------------------------
+SpaceBeforeCtorColon: true
+SpaceInEmptyParentheses: false
+Cpp11BracedListStyle: false

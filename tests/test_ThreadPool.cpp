@@ -1,9 +1,10 @@
-#include "thread_pool.h"
+#include "aethercopy/ThreadPool.h"
 #include <chrono>
 #include <gtest/gtest.h>
 #include <iostream>
 
 using namespace std::chrono_literals;
+using namespace aethercopy;
 
 // Класс ScopedTimer для измерения времени в области видимости
 class ScopedTimer
@@ -22,14 +23,7 @@ private:
     clock::time_point start_time;
 };
 
-class ThreadPoolTest : public ::testing::Test
-{
-protected:
-    void SetUp() override {}
-    void TearDown() override {}
-};
-
-TEST_F(ThreadPoolTest, SingleTaskWithSleep)
+TEST(ThreadPoolTest, SingleTaskWithSleep)
 {
     ThreadPool pool(2);
 
@@ -47,7 +41,7 @@ TEST_F(ThreadPoolTest, SingleTaskWithSleep)
     EXPECT_GE(duration_ms, 100); // Задержка минимум 100 мс
 }
 
-TEST_F(ThreadPoolTest, MultipleTasksLessThanThreads)
+TEST(ThreadPoolTest, MultipleTasksLessThanThreads)
 {
     const int thread_count = 4;
     ThreadPool pool(thread_count);
@@ -74,7 +68,7 @@ TEST_F(ThreadPoolTest, MultipleTasksLessThanThreads)
     EXPECT_LT(duration_ms, 300);
 }
 
-TEST_F(ThreadPoolTest, MultipleTasksMoreThanThreads)
+TEST(ThreadPoolTest, MultipleTasksMoreThanThreads)
 {
     const int thread_count = 3;
     ThreadPool pool(thread_count);
@@ -97,12 +91,15 @@ TEST_F(ThreadPoolTest, MultipleTasksMoreThanThreads)
 
     double duration_ms = timer.elapsed();
 
-    // Ожидаем, что задачи выполняются примерно за 2 периода по 150 мс (6 задач / 3 потока = 2 "партии")
+    /* 
+     * Ожидаем, что задачи выполняются примерно
+     за 2 периода по 150 мс (6 задач / 3 потока = 2 партии)
+    */
     EXPECT_GE(duration_ms, 300);
     EXPECT_LT(duration_ms, 450);
 }
 
-TEST_F(ThreadPoolTest, TasksRunInParallel)
+TEST(ThreadPoolTest, TasksRunInParallel)
 {
     const int thread_count = 4;
     ThreadPool pool(thread_count);
@@ -139,7 +136,7 @@ TEST_F(ThreadPoolTest, TasksRunInParallel)
     EXPECT_LT(duration_ms, 1000);
 }
 
-TEST_F(ThreadPoolTest, EmptyTasksBenchmark)
+TEST(ThreadPoolTest, EmptyTasksBenchmark)
 {
     const int task_count = 1000;
     ThreadPool pool(4); // Можно указать нужное количество потоков
@@ -166,4 +163,38 @@ TEST_F(ThreadPoolTest, EmptyTasksBenchmark)
 
     // Можно добавить проверку, например, что среднее время не слишком большое
     // EXPECT_LT(avg_per_task, 1.0); // например, менее 1 мс на задачу
+}
+
+TEST(ThreadPoolTest, WaitTest)
+{
+    const int thread_count = 4;
+    ThreadPool pool(thread_count);
+
+    const int task_count = 8;
+
+    std::atomic_int completed{0};
+    for (int i = 0; i < task_count; ++i) {
+        pool.enqueue([&]() {
+            std::this_thread::sleep_for(100ms);
+            ++completed;
+        });
+    }
+
+    pool.wait();
+    EXPECT_EQ(completed.load(), task_count);
+}
+
+TEST(ThreadPoolTest, WaitBlocksUntilCompletion)
+{
+    ThreadPool pool(2);
+    std::atomic<bool> finished{false};
+
+    pool.enqueue([&]() {
+        std::this_thread::sleep_for(200ms);
+        finished = true;
+    });
+
+    pool.wait();
+
+    EXPECT_TRUE(finished); // wait дождался выполнения
 }

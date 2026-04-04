@@ -2,7 +2,7 @@
 #include <magic.h>
 #include <stdexcept>
 
-namespace aethercopy {
+using namespace aethercopy;
 
 FormatDetector::FormatDetector() {
     // magic_open возвращает magic_t, а не void*
@@ -36,5 +36,3 @@ std::string FormatDetector::detect(const std::string& filepath) {
 
     return std::string(mime);
 }
-
-} // namespace aethercopy

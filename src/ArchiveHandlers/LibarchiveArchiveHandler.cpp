@@ -6,16 +6,13 @@
 #include <stdexcept>
 #include <sys/stat.h>
 
-namespace aethercopy {
+using namespace aethercopy;
+namespace fs = std::filesystem;
 
-std::string LibarchiveArchiveHandler::extractToDisk(const std::string &archivePath,
-                                                    const std::string &targetPath)
+bool LibarchiveArchiveHandler::extractToDisk(const std::string &archivePath,
+                                             const std::string &targetPath)
 {
-    std::string tempDir = targetPath + std::to_string(time(nullptr)) + std::to_string(std::rand());
-
-    namespace fs = std::filesystem;
-
-    mkdir(tempDir.c_str(), 0755);
+    mkdir(targetPath.c_str(), 0755);
 
     struct archive *a = archive_read_new();
     struct archive *ext = archive_write_disk_new();
@@ -35,7 +32,7 @@ std::string LibarchiveArchiveHandler::extractToDisk(const std::string &archivePa
 
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
         const char *entryName = archive_entry_pathname(entry);
-        std::string fullPath = tempDir + "/" + entryName;
+        std::string fullPath = targetPath + "/" + entryName;
 
         archive_entry_set_pathname(entry, fullPath.c_str());
 
@@ -54,7 +51,7 @@ std::string LibarchiveArchiveHandler::extractToDisk(const std::string &archivePa
     archive_read_free(a);
     archive_write_free(ext);
 
-    return tempDir;
+    return true;
 }
 
 int64_t LibarchiveArchiveHandler::getUncompressedArchiveSize(const std::string &archivePath)
@@ -103,5 +100,3 @@ int64_t LibarchiveArchiveHandler::getUncompressedArchiveSize(const std::string &
 
     return total_size;
 }
-
-} // namespace aethercopy
