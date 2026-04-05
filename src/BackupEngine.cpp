@@ -1,7 +1,7 @@
+#include "absl/log/log.h"
 #include <archive.h>
 #include <archive_entry.h>
 #include <filesystem>
-#include <iostream>
 
 #include "aethercopy/BackupEngine.h"
 #include "aethercopy/detector.h"
@@ -15,30 +15,59 @@ BackupEngine::BackupEngine(ThreadPool &pool, ICopier &copier, FormatFilter &filt
                            IArchiveHandler &handler, const std::string &targetBase,
                            const std::string &tempDir)
     : pool_(pool), copier_(copier), filter_(filter), archiveHandler_(handler),
-      targetBase_(targetBase), tempDir_(tempDir)
+      targetBase_(targetBase), tempDirBase_(tempDir)
 {}
+
+BackupEngine::~BackupEngine()
+{
+}
+
+std::string BackupEngine::generateUniqueTempDir(const std::string &base)
+{
+    static std::atomic<uint64_t> counter{ 0 };
+    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+    auto threadId = std::this_thread::get_id();
+    std::hash<std::thread::id> hasher;
+    uint64_t id = hasher(threadId);
+
+    uint64_t unique = counter.fetch_add(1);
+
+    return base + "_" + std::to_string(now) + "_" + std::to_string(id) + "_" +
+           std::to_string(unique);
+}
 
 bool BackupEngine::processFile(const std::string &path)
 {
     std::string mime = detector_.detect(path);
-    if (not filter_.shouldCopy(mime))
-        return true;
+    // BUG: распакованные из архива odt файлы обрабатываются как архивы
+    // libarchive неправильно распознаёт MIME-типы файлов после распаковки архива.
+    // if (mime == "application/octet-stream") {
+    //     DLOG(INFO) << "Skipping octet-stream file: " << path;
+    //     return true;
+    // }
+    DLOG(INFO) << "------------------" << '\n';
+    DLOG(INFO) << "Current file: " << path << '\n';
 
+    // чтобы класс пережил лямбду
     auto self = shared_from_this();
 
     if (mimetypes::isArchive(mime)) {
-        // чтобы класс пережил лямбду
         pool_.enqueue([self, path]() {
-            std::string tempDir =
-                self->tempDir_ + std::to_string(time(nullptr)) + std::to_string(std::rand());
+            DLOG(INFO) << "we are processing archive in lambda " << path << '\n';
+            std::string tempDir = self->generateUniqueTempDir(self->tempDirBase_);
             self->archiveHandler_.extractToDisk(path, tempDir);
             self->processDirectory(tempDir);
-            // self->removeTempDir(tempDir);
+            self->removeTempDir(tempDir);
         });
     } else {
         pool_.enqueue([self, path, mime]() {
-            //
-            self->copier_.copy(path, self->getTargetPath(path, mime));
+            if (self->filter_.shouldCopy(mime)) {
+                auto targetPath = self->getTargetPath(path, mime);
+                DLOG(INFO) << "copying file to " << targetPath << '\n';
+                DLOG(INFO) << "mime: " << mime << '\n';
+                DLOG(INFO) << "---------------------";
+                self->copier_.copy(path, targetPath);
+            }
         });
     }
     return true;
@@ -53,7 +82,7 @@ bool BackupEngine::processDirectory(const std::string &dirPath)
         }
         // TODO: добавить лог исходных путей файлов
     } catch (const fs::filesystem_error &e) {
-        std::clog << "[ERROR] [processDirectory] :" << e.what() << '\n';
+        DLOG(INFO) << "[ERROR] [processDirectory] :" << e.what() << '\n';
     }
     return true;
 }
@@ -63,12 +92,12 @@ bool BackupEngine::removeTempDir(const std::string &tempDirPath)
     const fs::path p = tempDirPath;
 
     if (not fs::exists(p)) {
-        std::clog << "temp dir not exist: " << p << '\n';
+        DLOG(INFO) << "temp dir not exist: " << p << '\n';
         return true;
     }
 
     if (not fs::is_directory(p)) {
-        std::clog << "path is not a directory: " << p << '\n';
+        DLOG(INFO) << "path is not a directory: " << p << '\n';
         return false;
     }
 
@@ -76,12 +105,12 @@ bool BackupEngine::removeTempDir(const std::string &tempDirPath)
     std::uintmax_t removed = fs::remove_all(p, ec);
 
     if (ec) {
-        std::clog << "Error removing directory : " << p << " : " << ec.message() << '\n';
+        DLOG(INFO) << "Error removing directory : " << p << " : " << ec.message() << '\n';
         return false;
     }
 
     if (removed > 0) {
-        std::clog << "Removed " << removed << " files/directories " << p << '\n';
+        DLOG(INFO) << "Removed " << removed << " files/directories " << p << '\n';
     }
     return true;
 }

@@ -1,5 +1,5 @@
 #include "aethercopy/ThreadPool.h"
-#include <iostream>
+#include "absl/log/log.h"
 
 using namespace aethercopy;
 
@@ -55,7 +55,9 @@ void ThreadPool::ThreadWorker::operator()()
                 f();
             }
             catch (const std::exception &e) {
-                std::clog << "Error when try to execute task: " << e.what() << '\n';
+                DLOG(INFO) << "Error when try to execute task: " << e.what() << '\n';
+            } catch (...) {
+                DLOG(DFATAL) << "Unknown exceprion in task (caught by ThreadPool)";
             }
             tp_->busyThreads_.fetch_sub(1);
             tp_->waitCv_.notify_one();

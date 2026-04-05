@@ -1,3 +1,4 @@
+#include "absl/log/log.h"
 #include <filesystem>
 #include <gtest/gtest.h>
 
@@ -14,7 +15,8 @@ class BackupEngineTest : public ::testing::Test {
     {
         std::string testDataDir = TEST_DATA_DIR;
         testSource_ = testDataDir + "Sample1";
-        testTarget_ = "/tmp/aethercopy_test_" + std::to_string(std::time(nullptr));
+        testTarget_ = "/tmp/aethercopy_" +
+                      std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
         fs::create_directories(testTarget_);
     }
 
@@ -35,14 +37,16 @@ TEST_F(BackupEngineTest, ProcessDirectoryCopiesFilesToCorrectFolders)
     filter.includeOnly({}); // всё копируем
 
     LibarchiveArchiveHandler handler;
+    DLOG(INFO) << "testTarget_ : " << testTarget_ << '\n';
+    ASSERT_TRUE(std::filesystem::exists(testTarget_));
+
     auto engine =
         std::make_shared<BackupEngine>(pool, copier, filter, handler, testTarget_, "/tmp");
-
     engine->processDirectory(testSource_);
     engine->wait();
 
     EXPECT_TRUE(fs::exists(testTarget_ + "/images/"));
-    EXPECT_TRUE(fs::exists(testTarget_ + "/images/1.jpg"));
+    EXPECT_TRUE(fs::exists(testTarget_ + "/images/4.jpg"));
 
     EXPECT_TRUE(fs::exists(testTarget_ + "/documents/"));
     EXPECT_TRUE(fs::exists(testTarget_ + "/documents/document1.pdf"));

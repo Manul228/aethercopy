@@ -3,20 +3,20 @@
 
 namespace aethercopy {
 namespace mimetypes {
-const std::unordered_set<std::string> ARCHIVE_MIMES = {"application/zip",
-                                                       "application/x-zip-compressed",
-                                                       "application/x-tar",
-                                                       "application/x-gzip",
-                                                       "application/gzip",
-                                                       "application/x-bzip2",
-                                                       "application/x-xz",
-                                                       "application/x-7z-compressed",
-                                                       "application/x-rar",
-                                                       "application/x-rar-compressed",
-                                                       "application/x-cpio",
-                                                       "application/x-shar",
-                                                       "application/x-iso9660-image",
-                                                       "application/vnd.rar"};
+const std::unordered_set<std::string> ARCHIVE_MIMES = { "application/zip",
+                                                        "application/x-zip-compressed",
+                                                        "application/x-tar",
+                                                        "application/x-gzip",
+                                                        "application/gzip",
+                                                        "application/x-bzip2",
+                                                        "application/x-xz",
+                                                        "application/x-7z-compressed",
+                                                        "application/x-rar",
+                                                        "application/x-rar-compressed",
+                                                        "application/x-cpio",
+                                                        "application/x-shar",
+                                                        "application/x-iso9660-image",
+                                                        "application/vnd.rar" };
 
 const std::unordered_set<std::string> IMAGE_MIMES = {"image/jpeg",
                                                      "image/png",

@@ -4,6 +4,9 @@ project(AetherCopy VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -g")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+
 option(BUILD_TESTS "Build tests" ON)
 
 # Поиск библиотек
@@ -11,6 +14,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(URING REQUIRED liburing)
 pkg_check_modules(MAGIC REQUIRED libmagic)
 pkg_check_modules(ARCHIVE REQUIRED libarchive)
+find_package(absl REQUIRED CONFIG)
 find_package(Threads REQUIRED)
 
 # ============================================
@@ -53,6 +57,7 @@ target_link_libraries(libaethercopy PUBLIC
     ${URING_LIBRARIES}
     ${MAGIC_LIBRARIES}
     ${ARCHIVE_LIBRARIES}
+    absl::log
 )
 
 # ============================================
@@ -62,6 +67,11 @@ add_executable(aethercopy src/main.cpp
 )
 
 target_link_libraries(aethercopy PRIVATE libaethercopy)
+
+# ============================================
+# ЛОГИРОВАНИЕ
+# ============================================
+add_definitions(-DABSL_MIN_LOG_LEVEL=3)
 
 # ============================================
 # ТЕСТЫ
