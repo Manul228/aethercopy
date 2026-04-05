@@ -11,21 +11,32 @@ class BackupEngine;
 
 namespace aethercopy::cli {
 
-struct BackupOptions {
+struct BackupOptions
+{
     std::string source;
     std::string target;
     bool verbose{ false };
     bool recursive{ true };
     int threads{ 4 };
+
+    bool includeDocuments{ false };
+    bool includeImages{ false };
+    bool includeVideos{ false };
+    bool includeAudio{ false };
+    bool includeArchives{ false };
+    bool includeAll{ false };
+
+    std::vector<std::string> includeMimes;
 };
 
-class CliHandler {
+class CliHandler
+{
   public:
     CliHandler();
 
-    BackupOptions parse(int argc, char **argv);
+    BackupOptions parse(int argc, char** argv);
 
-    int run(const BackupOptions &opts, std::shared_ptr<BackupEngine> engine);
+    int run(const BackupOptions& opts, std::shared_ptr<BackupEngine> engine);
     void printHelp();
     void printVersion();
 

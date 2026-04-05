@@ -26,7 +26,7 @@ add_library(libaethercopy STATIC
     src/FormatDetector.cpp
 
     src/mimeTypes.cpp
-    include/aethercopy/mimeTypes.h
+    include/aethercopy/mimeTypes.hpp
 
     include/aethercopy/ThreadPool.h
     src/ThreadPool.cpp
@@ -67,6 +67,8 @@ target_link_libraries(libaethercopy PUBLIC
 add_executable(aethercopycli src/main.cpp
     src/cli/CliHandler.h
     src/cli/CliHandler.cpp
+    src/FilterBuilder/FilterBuilder.hpp
+    src/FilterBuilder/FilterBuilder.cpp
 )
 
 target_link_libraries(aethercopycli PRIVATE

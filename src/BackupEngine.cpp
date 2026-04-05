@@ -8,22 +8,28 @@
 #include "aethercopy/copiers/ICopier.h"
 
 #include "aethercopy/BackupEngine.h"
-#include "aethercopy/mimeTypes.h"
+#include "aethercopy/mimeTypes.hpp"
 
 using namespace aethercopy;
 
 namespace fs = std::filesystem;
 
-BackupEngine::BackupEngine(std::shared_ptr<ThreadPool> pool, std::shared_ptr<ICopier> copier,
-                           std::shared_ptr<IArchiveHandler> archiveHandler, FormatFilter &filter,
-                           const std::string &targetBase, const std::string &tempDirBase)
-    : pool_(std::move(pool)), copier_(std::move(copier)),
-      archiveHandler_(std::move(archiveHandler)), filter_(filter), targetBase_(targetBase),
-      tempDirBase_(tempDirBase)
+BackupEngine::BackupEngine(std::shared_ptr<ThreadPool> pool,
+                           std::shared_ptr<ICopier> copier,
+                           std::shared_ptr<IArchiveHandler> archiveHandler,
+                           FormatFilter& filter,
+                           const std::string& targetBase,
+                           const std::string& tempDirBase)
+    : pool_(std::move(pool))
+    , copier_(std::move(copier))
+    , archiveHandler_(std::move(archiveHandler))
+    , filter_(filter)
+    , targetBase_(targetBase)
+    , tempDirBase_(tempDirBase)
 {
 }
 
-std::string BackupEngine::generateUniqueTempDir(const std::string &base)
+std::string BackupEngine::generateUniqueTempDir(const std::string& base)
 {
     static std::atomic<uint64_t> counter{ 0 };
     auto now = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -37,7 +43,7 @@ std::string BackupEngine::generateUniqueTempDir(const std::string &base)
            std::to_string(unique);
 }
 
-bool BackupEngine::processFile(const std::string &path)
+bool BackupEngine::processFile(const std::string& path)
 {
     std::string mime = detector_.detect(path);
     DLOG(INFO) << "------------------" << '\n';
@@ -50,16 +56,18 @@ bool BackupEngine::processFile(const std::string &path)
     auto poolCopy = pool_;
     if (mimetypes::isArchive(mime)) {
         pool_->enqueue([self, path, poolCopy]() {
-            DLOG(INFO) << "we are processing archive in lambda " << path << '\n';
-            std::string tempDir = self->generateUniqueTempDir(self->tempDirBase_);
+            DLOG(INFO) << "we are processing archive in lambda " << path
+                       << '\n';
+            std::string tempDir =
+                self->generateUniqueTempDir(self->tempDirBase_);
             self->archiveHandler_->extractToDisk(path, tempDir);
             self->processDirectory(tempDir);
             self->removeTempDir(tempDir);
         });
-    }
-    else {
+    } else {
         pool_->enqueue([self, path, mime, poolCopy]() {
-            if (self->filter_.shouldCopy(mime)) {
+            bool shouldCopy = self->filter_.shouldCopy(mime);
+            if (shouldCopy) {
                 auto targetPath = self->getTargetPath(path, mime);
                 DLOG(INFO) << "copying file to " << targetPath << '\n';
                 DLOG(INFO) << "mime: " << mime << '\n';
@@ -71,22 +79,21 @@ bool BackupEngine::processFile(const std::string &path)
     return true;
 }
 
-bool BackupEngine::processDirectory(const std::string &dirPath)
+bool BackupEngine::processDirectory(const std::string& dirPath)
 {
     try {
-        for (const auto &entry : fs::recursive_directory_iterator(dirPath)) {
+        for (const auto& entry : fs::recursive_directory_iterator(dirPath)) {
             if (entry.is_regular_file())
                 processFile(entry.path().string());
         }
         // TODO: добавить лог исходных путей файлов
-    }
-    catch (const fs::filesystem_error &e) {
+    } catch (const fs::filesystem_error& e) {
         DLOG(ERROR) << "Error in processDirectory: " << e.what() << '\n';
     }
     return true;
 }
 
-bool BackupEngine::removeTempDir(const std::string &tempDirPath)
+bool BackupEngine::removeTempDir(const std::string& tempDirPath)
 {
     const fs::path p = tempDirPath;
 
@@ -104,18 +111,20 @@ bool BackupEngine::removeTempDir(const std::string &tempDirPath)
     std::uintmax_t removed = fs::remove_all(p, ec);
 
     if (ec) {
-        DLOG(INFO) << "Error removing directory : " << p << " : " << ec.message() << '\n';
+        DLOG(INFO) << "Error removing directory : " << p << " : "
+                   << ec.message() << '\n';
         return false;
     }
 
     if (removed > 0) {
-        DLOG(INFO) << "Removed " << removed << " files/directories " << p << '\n';
+        DLOG(INFO) << "Removed " << removed << " files/directories " << p
+                   << '\n';
     }
     return true;
 }
 
 // файл с таким именем уже может существовать
-std::string BackupEngine::getUniquePath(const std::string &targetPath)
+std::string BackupEngine::getUniquePath(const std::string& targetPath)
 {
     if (not fs::exists(targetPath)) {
         return targetPath;
@@ -127,8 +136,8 @@ std::string BackupEngine::getUniquePath(const std::string &targetPath)
 
     int counter = 1;
     while (true) {
-        std::string newPath = path.parent_path().string() + "/" + stem + "_copy"
-                              + std::to_string(counter) + ext;
+        std::string newPath = path.parent_path().string() + "/" + stem +
+                              "_copy" + std::to_string(counter) + ext;
         if (not fs::exists(newPath)) {
             return newPath;
         }
@@ -136,27 +145,23 @@ std::string BackupEngine::getUniquePath(const std::string &targetPath)
     }
 }
 
-std::string BackupEngine::getTargetPath(const std::string &filepath, const std::string &mime)
+std::string BackupEngine::getTargetPath(const std::string& filepath,
+                                        const std::string& mime)
 {
     std::string filename = std::filesystem::path(filepath).filename().string();
     std::string basePath;
 
     if (mimetypes::isDocument(mime)) {
         basePath = targetBase_ + "/documents/" + filename;
-    }
-    else if (mimetypes::isImage(mime)) {
+    } else if (mimetypes::isImage(mime)) {
         basePath = targetBase_ + "/images/" + filename;
-    }
-    else if (mimetypes::isVideo(mime)) {
+    } else if (mimetypes::isVideo(mime)) {
         basePath = targetBase_ + "/videos/" + filename;
-    }
-    else if (mimetypes::isAudio(mime)) {
+    } else if (mimetypes::isAudio(mime)) {
         basePath = targetBase_ + "/audio/" + filename;
-    }
-    else if (mimetypes::isArchive(mime)) {
+    } else if (mimetypes::isArchive(mime)) {
         basePath = targetBase_ + "/archives/" + filename;
-    }
-    else {
+    } else {
         basePath = targetBase_ + "/others/" + filename;
     }
     return getUniquePath(basePath);

@@ -5,13 +5,41 @@
 
 namespace aethercopy::cli {
 
-CliHandler::CliHandler() : app_{ "AetherCopy - blazingly fast async backup tool" }
+CliHandler::CliHandler()
+    : app_{ "AetherCopy - blazingly fast async backup tool" }
 {
     app_.add_option("source", opts_.source, "Source directory or file")
         ->required()
         ->check(CLI::ExistingPath);
 
     app_.add_option("target", opts_.target, "Target directory")->required();
+
+    // Групповые флаги
+    app_.add_flag("--documents",
+                  opts_.includeDocuments,
+                  "Include office documents (PDF, DOCX, XLSX, PPTX)");
+
+    app_.add_flag("--images",
+                  opts_.includeImages,
+                  "Include images (JPEG, PNG, GIF, WEBP, etc)");
+
+    app_.add_flag("--videos",
+                  opts_.includeVideos,
+                  "Include videos (MP4, MKV, WEBM, etc)");
+
+    app_.add_flag(
+        "--audio", opts_.includeAudio, "Include audio (MP3, WAV, FLAC, etc)");
+
+    app_.add_flag("--archives",
+                  opts_.includeArchives,
+                  "Include archives (ZIP, TAR, 7Z, RAR)");
+
+    app_.add_option("--mime",
+                    opts_.includeMimes,
+                    "Include specific MIME type (can be used multiple times)")
+        ->expected(1, 20);
+
+    app_.add_flag("--all", opts_.includeAll, "Include all of this");
 
     app_.add_flag("-V,--verbose", opts_.verbose, "Verbose output");
     app_.add_flag("-r,--recursive", opts_.recursive, "Process recursively");
@@ -22,19 +50,19 @@ CliHandler::CliHandler() : app_{ "AetherCopy - blazingly fast async backup tool"
         ->check(CLI::Range(1, maxThreads));
 }
 
-BackupOptions CliHandler::parse(int argc, char **argv)
+BackupOptions CliHandler::parse(int argc, char** argv)
 {
     try {
         app_.parse(argc, argv);
-    }
-    catch (const CLI::ParseError &e) {
+    } catch (const CLI::ParseError& e) {
         exit(app_.exit(e));
     }
 
     return opts_;
 }
 
-int CliHandler::run(const BackupOptions &opts, std::shared_ptr<BackupEngine> engine)
+int CliHandler::run(const BackupOptions& opts,
+                    std::shared_ptr<BackupEngine> engine)
 {
     if (!engine) {
         DLOG(ERROR) << "BackupEngine not initialized\n";
@@ -44,8 +72,7 @@ int CliHandler::run(const BackupOptions &opts, std::shared_ptr<BackupEngine> eng
     try {
         if (opts.recursive) {
             engine->processDirectory(opts.source);
-        }
-        else {
+        } else {
             engine->processFile(opts.source);
         }
 
@@ -56,8 +83,7 @@ int CliHandler::run(const BackupOptions &opts, std::shared_ptr<BackupEngine> eng
         }
 
         return 0;
-    }
-    catch (const std::exception &e) {
+    } catch (const std::exception& e) {
         DLOG(ERROR) << e.what() << '\n';
         return 1;
     }

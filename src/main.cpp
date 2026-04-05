@@ -1,3 +1,4 @@
+#include "FilterBuilder/FilterBuilder.hpp"
 #include "aethercopy/ArchiveHandlers/LibarchiveArchiveHandler.h"
 #include "aethercopy/BackupEngine.h"
 #include "aethercopy/FormatFilter.hpp"
@@ -6,7 +7,7 @@
 #include "cli/CliHandler.h"
 #include <memory>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     using namespace aethercopy;
 
@@ -18,10 +19,10 @@ int main(int argc, char **argv)
     auto copier = std::make_shared<SyncCopier>();
     auto handler = std::make_shared<LibarchiveArchiveHandler>();
     FormatFilter filter;
-    filter.includeOnly({}); // всё копируем
+    FilterBuilder::buildFilterFromOptions(filter, opts);
 
-    auto engine = std::make_shared<BackupEngine>(pool, copier, handler, filter, opts.target,
-                                                 "/tmp/aethercopy");
+    auto engine = std::make_shared<BackupEngine>(
+        pool, copier, handler, filter, opts.target, "/tmp/aethercopy");
 
     return cli.run(opts, engine);
 }
