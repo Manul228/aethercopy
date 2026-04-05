@@ -1,4 +1,4 @@
-#include "aethercopy/filter.h"
+#include "aethercopy/FormatFilter.hpp"
 #include <algorithm>
 
 using namespace aethercopy;

@@ -1,4 +1,4 @@
-#include "aethercopy/detector.h"
+#include "aethercopy/FormatDetector.hpp"
 #include <magic.h>
 #include <stdexcept>
 
@@ -27,6 +27,8 @@ FormatDetector::~FormatDetector() {
 }
 
 std::string FormatDetector::detect(const std::string& filepath) {
+    // libmagic не потокобезопасен
+    std::lock_guard<std::mutex> lock(magicMutex_);
     magic_t magic = static_cast<magic_t>(magic_cookie_);
     const char* mime = magic_file(magic, filepath.c_str());
 

@@ -2,23 +2,24 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <filesystem>
+#include <thread>
+
+#include "aethercopy/ArchiveHandlers/IArchiveHandler.h"
+#include "aethercopy/copiers/ICopier.h"
 
 #include "aethercopy/BackupEngine.h"
-#include "aethercopy/detector.h"
 #include "aethercopy/mimeTypes.h"
 
 using namespace aethercopy;
 
 namespace fs = std::filesystem;
 
-BackupEngine::BackupEngine(ThreadPool &pool, ICopier &copier, FormatFilter &filter,
-                           IArchiveHandler &handler, const std::string &targetBase,
-                           const std::string &tempDir)
-    : pool_(pool), copier_(copier), filter_(filter), archiveHandler_(handler),
-      targetBase_(targetBase), tempDirBase_(tempDir)
-{}
-
-BackupEngine::~BackupEngine()
+BackupEngine::BackupEngine(std::shared_ptr<ThreadPool> pool, std::shared_ptr<ICopier> copier,
+                           std::shared_ptr<IArchiveHandler> archiveHandler, FormatFilter &filter,
+                           const std::string &targetBase, const std::string &tempDirBase)
+    : pool_(std::move(pool)), copier_(std::move(copier)),
+      archiveHandler_(std::move(archiveHandler)), filter_(filter), targetBase_(targetBase),
+      tempDirBase_(tempDirBase)
 {
 }
 
@@ -39,34 +40,31 @@ std::string BackupEngine::generateUniqueTempDir(const std::string &base)
 bool BackupEngine::processFile(const std::string &path)
 {
     std::string mime = detector_.detect(path);
-    // BUG: распакованные из архива odt файлы обрабатываются как архивы
-    // libarchive неправильно распознаёт MIME-типы файлов после распаковки архива.
-    // if (mime == "application/octet-stream") {
-    //     DLOG(INFO) << "Skipping octet-stream file: " << path;
-    //     return true;
-    // }
     DLOG(INFO) << "------------------" << '\n';
     DLOG(INFO) << "Current file: " << path << '\n';
 
     // чтобы класс пережил лямбду
     auto self = shared_from_this();
 
+    // Продлеваем жизнь пулу
+    auto poolCopy = pool_;
     if (mimetypes::isArchive(mime)) {
-        pool_.enqueue([self, path]() {
+        pool_->enqueue([self, path, poolCopy]() {
             DLOG(INFO) << "we are processing archive in lambda " << path << '\n';
             std::string tempDir = self->generateUniqueTempDir(self->tempDirBase_);
-            self->archiveHandler_.extractToDisk(path, tempDir);
+            self->archiveHandler_->extractToDisk(path, tempDir);
             self->processDirectory(tempDir);
             self->removeTempDir(tempDir);
         });
-    } else {
-        pool_.enqueue([self, path, mime]() {
+    }
+    else {
+        pool_->enqueue([self, path, mime, poolCopy]() {
             if (self->filter_.shouldCopy(mime)) {
                 auto targetPath = self->getTargetPath(path, mime);
                 DLOG(INFO) << "copying file to " << targetPath << '\n';
                 DLOG(INFO) << "mime: " << mime << '\n';
                 DLOG(INFO) << "---------------------";
-                self->copier_.copy(path, targetPath);
+                self->copier_->copy(path, targetPath);
             }
         });
     }
@@ -81,8 +79,9 @@ bool BackupEngine::processDirectory(const std::string &dirPath)
                 processFile(entry.path().string());
         }
         // TODO: добавить лог исходных путей файлов
-    } catch (const fs::filesystem_error &e) {
-        DLOG(INFO) << "[ERROR] [processDirectory] :" << e.what() << '\n';
+    }
+    catch (const fs::filesystem_error &e) {
+        DLOG(ERROR) << "Error in processDirectory: " << e.what() << '\n';
     }
     return true;
 }
@@ -165,5 +164,5 @@ std::string BackupEngine::getTargetPath(const std::string &filepath, const std::
 
 void BackupEngine::wait()
 {
-    pool_.wait();
+    pool_->wait();
 }

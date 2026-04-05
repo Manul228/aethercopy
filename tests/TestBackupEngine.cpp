@@ -31,17 +31,17 @@ class BackupEngineTest : public ::testing::Test {
 
 TEST_F(BackupEngineTest, ProcessDirectoryCopiesFilesToCorrectFolders)
 {
-    ThreadPool pool(4);
-    SyncCopier copier;
+    auto pool = std::make_shared<ThreadPool>(4);
+    auto copier = std::make_shared<SyncCopier>();
+    auto archiveHandler = std::make_shared<LibarchiveArchiveHandler>();
     FormatFilter filter;
     filter.includeOnly({}); // всё копируем
 
-    LibarchiveArchiveHandler handler;
     DLOG(INFO) << "testTarget_ : " << testTarget_ << '\n';
     ASSERT_TRUE(std::filesystem::exists(testTarget_));
 
     auto engine =
-        std::make_shared<BackupEngine>(pool, copier, filter, handler, testTarget_, "/tmp");
+        std::make_shared<BackupEngine>(pool, copier, archiveHandler, filter, testTarget_, "/tmp");
     engine->processDirectory(testSource_);
     engine->wait();
 

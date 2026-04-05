@@ -16,13 +16,14 @@ pkg_check_modules(MAGIC REQUIRED libmagic)
 pkg_check_modules(ARCHIVE REQUIRED libarchive)
 find_package(absl REQUIRED CONFIG)
 find_package(Threads REQUIRED)
+find_package(CLI11 CONFIG REQUIRED)
 
 # ============================================
 # БИБЛИОТЕКА
 # ============================================
 add_library(libaethercopy STATIC
-    src/filter.cpp
-    src/detector.cpp
+    src/FormatFilter.cpp
+    src/FormatDetector.cpp
 
     src/mimeTypes.cpp
     include/aethercopy/mimeTypes.h
@@ -63,10 +64,15 @@ target_link_libraries(libaethercopy PUBLIC
 # ============================================
 # ПРОГРАММА
 # ============================================
-add_executable(aethercopy src/main.cpp
+add_executable(aethercopycli src/main.cpp
+    src/cli/CliHandler.h
+    src/cli/CliHandler.cpp
 )
 
-target_link_libraries(aethercopy PRIVATE libaethercopy)
+target_link_libraries(aethercopycli PRIVATE
+    libaethercopy
+    CLI11::CLI11
+)
 
 # ============================================
 # ЛОГИРОВАНИЕ
@@ -80,10 +86,10 @@ if(BUILD_TESTS)
     find_package(GTest REQUIRED)
     add_definitions(-DTEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data/")
     add_executable(aethercopy_tests
-        tests/test_filter.cpp
-        tests/test_ThreadPool.cpp
-        tests/test_BackupEngine.cpp
-        tests/test_LibarchiveHandler.cpp
+        tests/TestFormatFilter.cpp
+        tests/TestThreadPool.cpp
+        tests/TestBackupEngine.cpp
+        tests/TestLibarchiveHandler.cpp
     )
 
     target_link_libraries(aethercopy_tests

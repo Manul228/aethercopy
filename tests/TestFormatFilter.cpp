@@ -1,5 +1,5 @@
+#include "aethercopy/FormatFilter.hpp"
 #include <gtest/gtest.h>
-#include "aethercopy/filter.h"
 
 using namespace aethercopy;
 
