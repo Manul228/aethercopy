@@ -33,6 +33,7 @@ add_library(libaethercopy STATIC
 
     include/aethercopy/copiers/ICopier.h
     include/aethercopy/copiers/SyncCopier.h
+    include/aethercopy/copiers/IoUringCopier.hpp
     src/copiers/SyncCopier.cpp
 
 
@@ -92,6 +93,7 @@ if(BUILD_TESTS)
         tests/TestThreadPool.cpp
         tests/TestBackupEngine.cpp
         tests/TestLibarchiveHandler.cpp
+        tests/TestIoURing.cpp
     )
 
     target_link_libraries(aethercopy_tests

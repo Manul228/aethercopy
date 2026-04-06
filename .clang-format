@@ -1,20 +1,69 @@
 # .clang-format
-BasedOnStyle: LLVM
-IndentWidth: 4
-BreakBeforeBraces: Allman
+BasedOnStyle: Mozilla
+Language: Cpp
 
-# Форматирование списков — каждый элемент с новой строки
-Cpp11BracedListStyle: Block # ← Block вместо false
-AlignAfterOpenBracket: Align # ← выравнивание по скобке
-BinPackArguments: false
-BinPackParameters: OnePerLine # ← каждый параметр с новой строки
+# Отступы 4 пробела
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+UseTab: Never
+TabWidth: 4
+
+# Отключаем сжатие коротких функций в одну строку
+AllowShortFunctionsOnASingleLine: None
+AllowShortLambdasOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
 
 # Пробелы внутри скобок
-SpaceInEmptyBraces: Never # пустые скобки без пробелов
-SpacesInContainerLiterals: true # пробелы внутри { }
+SpacesInContainerLiterals: true
 
-# Отключаем упаковку
-AllowAllArgumentsOnNextLine: false
-AllowAllParametersOfDeclarationOnNextLine: false
+# Форматирование списков
+Cpp11BracedListStyle: false
+BinPackArguments: false
+BinPackParameters: false
 
-ColumnLimit: 100
+# ─── добавлено ───────────────────────────────────────────────
+
+# выравнивание переменных в столбец
+#   std::string     src;
+#   off_t           file_size;
+#   int             src_slot;
+AlignConsecutiveDeclarations:
+  Enabled:          true
+  AcrossEmptyLines: false  # не выравнивать через пустые строки
+  AcrossComments:   false  # не выравнивать через комментарии
+
+# выравнивание комментариев в конце строк
+#   int x;   // первый
+#   int yy;  // второй
+AlignTrailingComments:
+  Kind:           Always
+  OverEmptyLines: 1
+
+# запятая в начале строки при инициализации полей конструктора
+#   : ring_(entries)
+#   , worker_(...)
+BreakConstructorInitializers:                   BeforeComma
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+
+AlwaysBreakAfterReturnType:           None
+AlwaysBreakAfterDefinitionReturnType: None
+
+AlignConsecutiveAssignments:
+  Enabled:          true
+  AcrossEmptyLines: false
+  AcrossComments:   false
+
+AlignAfterOpenBracket: BlockIndent
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction:    true  # функции — скобка на той же строке
+  AfterClass:       true  # классы — на той же строке
+  AfterStruct:      true  # структуры — на той же строке
+  AfterControlStatement: Always  # if/for/while — скобка на новой строке
+  BeforeElse:       true   # else тоже на новой строке
+  AfterEnum:        true
+  AfterNamespace:   false
+

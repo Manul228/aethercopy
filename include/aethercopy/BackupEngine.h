@@ -27,12 +27,12 @@ class BackupEngine : public std::enable_shared_from_this<BackupEngine>
     // IArchiveHandler &handler,
     //              const std::string &targetBase, const std::string &tempDir);
 
-    BackupEngine(std::shared_ptr<ThreadPool> pool,
-                 std::shared_ptr<ICopier> copier,
+    BackupEngine(std::shared_ptr<ThreadPool>      pool,
+                 std::shared_ptr<ICopier>         copier,
                  std::shared_ptr<IArchiveHandler> archiveHandler,
-                 FormatFilter& filter,
-                 const std::string& targetBase,
-                 const std::string& tempDirBase);
+                 FormatFilter&                    filter,
+                 const std::string&               targetBase,
+                 const std::string&               tempDirBase);
 
     BackupEngine(const BackupEngine&) = delete;
     BackupEngine& operator=(const BackupEngine&) = delete;
@@ -59,16 +59,16 @@ class BackupEngine : public std::enable_shared_from_this<BackupEngine>
     std::string getUniquePath(const std::string& targetPath);
     std::string getTargetPath(const std::string& filepath,
                               const std::string& mime);
-    bool removeTempDir(const std::string& tempDir);
+    bool        removeTempDir(const std::string& tempDir);
 
   private:
-    std::string tempDirBase_;
-    std::string targetBase_;
-    FormatDetector detector_;
-    FormatFilter& filter_;
+    std::string                      tempDirBase_;
+    std::string                      targetBase_;
+    FormatDetector                   detector_;
+    FormatFilter&                    filter_;
     std::shared_ptr<IArchiveHandler> archiveHandler_;
-    std::shared_ptr<ThreadPool> pool_;
-    std::shared_ptr<ICopier> copier_;
+    std::shared_ptr<ThreadPool>      pool_;
+    std::shared_ptr<ICopier>         copier_;
 };
 
 } // namespace aethercopy

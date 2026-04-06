@@ -6,16 +6,17 @@
 
 namespace aethercopy {
 
-class FormatDetector {
-public:
+class FormatDetector
+{
+  public:
     FormatDetector();
     ~FormatDetector();
 
     // Возвращает MIME тип файла (например, "image/jpeg")
     std::string detect(const std::string& filepath);
 
-private:
-    void *magic_cookie_;
+  private:
+    void*      magic_cookie_;
     std::mutex magicMutex_;
 };
 

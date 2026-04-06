@@ -46,27 +46,32 @@ const std::unordered_set<std::string> DOCUMENT_MIMES = {
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 };
 
-bool isArchive(const std::string& mime)
+bool
+isArchive(const std::string& mime)
 {
     return ARCHIVE_MIMES.find(mime) != ARCHIVE_MIMES.end();
 }
 
-bool isImage(const std::string& mime)
+bool
+isImage(const std::string& mime)
 {
     return IMAGE_MIMES.find(mime) != IMAGE_MIMES.end();
 }
 
-bool isVideo(const std::string& mime)
+bool
+isVideo(const std::string& mime)
 {
     return VIDEO_MIMES.find(mime) != VIDEO_MIMES.end();
 }
 
-bool isAudio(const std::string& mime)
+bool
+isAudio(const std::string& mime)
 {
     return AUDIO_MIMES.find(mime) != AUDIO_MIMES.end();
 }
 
-bool isDocument(const std::string& mime)
+bool
+isDocument(const std::string& mime)
 {
     return DOCUMENT_MIMES.find(mime) != DOCUMENT_MIMES.end();
 }

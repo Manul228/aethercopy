@@ -1,25 +1,27 @@
+#include "aethercopy/BackupEngine.h"
+
 #include "absl/log/log.h"
+#include "aethercopy/ArchiveHandlers/IArchiveHandler.h"
+#include "aethercopy/copiers/ICopier.h"
+#include "aethercopy/mimeTypes.hpp"
+
 #include <archive.h>
 #include <archive_entry.h>
 #include <filesystem>
 #include <thread>
 
-#include "aethercopy/ArchiveHandlers/IArchiveHandler.h"
-#include "aethercopy/copiers/ICopier.h"
-
-#include "aethercopy/BackupEngine.h"
-#include "aethercopy/mimeTypes.hpp"
-
 using namespace aethercopy;
 
 namespace fs = std::filesystem;
 
-BackupEngine::BackupEngine(std::shared_ptr<ThreadPool> pool,
-                           std::shared_ptr<ICopier> copier,
-                           std::shared_ptr<IArchiveHandler> archiveHandler,
-                           FormatFilter& filter,
-                           const std::string& targetBase,
-                           const std::string& tempDirBase)
+BackupEngine::BackupEngine(
+    std::shared_ptr<ThreadPool>      pool,
+    std::shared_ptr<ICopier>         copier,
+    std::shared_ptr<IArchiveHandler> archiveHandler,
+    FormatFilter&                    filter,
+    const std::string&               targetBase,
+    const std::string&               tempDirBase
+)
     : pool_(std::move(pool))
     , copier_(std::move(copier))
     , archiveHandler_(std::move(archiveHandler))
@@ -32,10 +34,10 @@ BackupEngine::BackupEngine(std::shared_ptr<ThreadPool> pool,
 std::string BackupEngine::generateUniqueTempDir(const std::string& base)
 {
     static std::atomic<uint64_t> counter{ 0 };
-    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+    auto now      = std::chrono::steady_clock::now().time_since_epoch().count();
     auto threadId = std::this_thread::get_id();
     std::hash<std::thread::id> hasher;
-    uint64_t id = hasher(threadId);
+    uint64_t                   id = hasher(threadId);
 
     uint64_t unique = counter.fetch_add(1);
 
@@ -108,7 +110,7 @@ bool BackupEngine::removeTempDir(const std::string& tempDirPath)
     }
 
     std::error_code ec;
-    std::uintmax_t removed = fs::remove_all(p, ec);
+    std::uintmax_t  removed = fs::remove_all(p, ec);
 
     if (ec) {
         DLOG(INFO) << "Error removing directory : " << p << " : "
@@ -130,9 +132,9 @@ std::string BackupEngine::getUniquePath(const std::string& targetPath)
         return targetPath;
     }
 
-    fs::path path(targetPath);
+    fs::path    path(targetPath);
     std::string stem = path.stem().string();
-    std::string ext = path.extension().string();
+    std::string ext  = path.extension().string();
 
     int counter = 1;
     while (true) {
@@ -145,8 +147,10 @@ std::string BackupEngine::getUniquePath(const std::string& targetPath)
     }
 }
 
-std::string BackupEngine::getTargetPath(const std::string& filepath,
-                                        const std::string& mime)
+std::string BackupEngine::getTargetPath(
+    const std::string& filepath,
+    const std::string& mime
+)
 {
     std::string filename = std::filesystem::path(filepath).filename().string();
     std::string basePath;

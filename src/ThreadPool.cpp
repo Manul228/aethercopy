@@ -3,7 +3,9 @@
 
 using namespace aethercopy;
 
-ThreadPool::ThreadPool(size_t num_threads) : shutdownRequested_(false), busyThreads_(0)
+ThreadPool::ThreadPool(size_t num_threads)
+    : shutdownRequested_(false)
+    , busyThreads_(0)
 {
     for (size_t i = 0; i < num_threads; ++i) {
         workers_.emplace_back(ThreadWorker(this));
@@ -23,13 +25,14 @@ ThreadPool::~ThreadPool()
 {
     shutdown();
 
-    for (auto &w : workers_) {
+    for (auto& w : workers_) {
         if (w.joinable())
             w.join();
     }
 }
 
-ThreadPool::ThreadWorker::ThreadWorker(ThreadPool *p) : tp_(p) {};
+ThreadPool::ThreadWorker::ThreadWorker(ThreadPool* p)
+    : tp_(p) {};
 ThreadPool::ThreadWorker::~ThreadWorker() = default;
 
 void ThreadPool::ThreadWorker::operator()()
@@ -53,11 +56,12 @@ void ThreadPool::ThreadWorker::operator()()
             tp_->busyThreads_.fetch_add(1);
             try {
                 f();
-            }
-            catch (const std::exception &e) {
-                DLOG(INFO) << "Error when try to execute task: " << e.what() << '\n';
+            } catch (const std::exception& e) {
+                DLOG(INFO) << "Error when try to execute task: " << e.what()
+                           << '\n';
             } catch (...) {
-                DLOG(DFATAL) << "Unknown exceprion in task (caught by ThreadPool)";
+                DLOG(DFATAL)
+                    << "Unknown exceprion in task (caught by ThreadPool)";
             }
             tp_->busyThreads_.fetch_sub(1);
             tp_->waitCv_.notify_one();
