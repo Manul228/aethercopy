@@ -44,6 +44,7 @@ add_library(libaethercopy STATIC
     include/aethercopy/ArchiveHandlers/IArchiveHandler.h
     include/aethercopy/ArchiveHandlers/LibarchiveArchiveHandler.h
     src/ArchiveHandlers/LibarchiveArchiveHandler.cpp
+    include/aethercopy/copiers/IoURing.hpp
 
 )
 
@@ -94,6 +95,7 @@ if(BUILD_TESTS)
         tests/TestBackupEngine.cpp
         tests/TestLibarchiveHandler.cpp
         tests/TestIoURing.cpp
+        tests/TestIoUringCopier.cpp
     )
 
     target_link_libraries(aethercopy_tests

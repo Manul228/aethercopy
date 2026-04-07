@@ -1,4 +1,4 @@
-#include "aethercopy/copiers/IoUringCopier.hpp"
+#include "aethercopy/copiers/IoURing.hpp"
 #include <gtest/gtest.h>
 
 TEST(IoRing, CorstructWithValidEntries)
