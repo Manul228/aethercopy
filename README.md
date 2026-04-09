@@ -6,6 +6,7 @@
 - libarchive
 - CLI11 (headers)
 - Abseil logging (absl/log)
+- liburing
 
 ## Сборка и запуск тестов
 ```bash
@@ -56,6 +57,7 @@ $ ./aethercopycli --help
 
 ## Аргументы
 ```
+aethercopy [OPTIONS] source target
 POSITIONALS:
   source TEXT:PATH(existing) REQUIRED
                               Source directory or file
@@ -74,6 +76,10 @@ OPTIONS:
   -r,     --recursive         Process recursively
   -t,     --threads INT:INT in [1 - 16] [4]  
                               Number of threads
+  -e,     --entries UINT:INT in [1 - 4096] 
+                              io_uring queue size (default: 512)
+  -c,     --chunk-size UINT:SIZE [b, kb(=1000b), kib(=1024b), ...] 
+                              Copy chunk size in bytes (default: 64MB, supports K/M/G suffix)
 ```
 
 ## Архитектура и как это работает
@@ -87,15 +93,16 @@ OPTIONS:
 - CLI-слой (`CliHandler`) — парсит аргументы и конфигурирует фильтр через `FilterBuilder`.
 
 Ключевые файлы (для быстрого изучения):
-- `AetherCopy/include/aethercopy/mimeTypes.hpp` — наборы MIME-типов и проверки типа
+- `AetherCopy/include/aethercopy/mimeTypes.hpp` — набор MIME-типов и проверки типа
 - `AetherCopy/src/mimeTypes.cpp` — определения MIME-типов
-- `AetherCopy/src/FormatDetector.cpp/.hpp` — детектор MIME через libmagic
-- `AetherCopy/src/FormatFilter.cpp/.hpp` — логика включения/исключения форматов
+- `AetherCopy/include/aethercopy/FormatDetector.hpp` / `AetherCopy/src/FormatDetector.cpp` — детектор MIME через libmagic
+- `AetherCopy/include/aethercopy/FormatFilter.hpp` / `AetherCopy/src/FormatFilter.cpp` — логика включения/исключения форматов
 - `AetherCopy/src/BackupEngine.cpp` — обработка файлов и архивов
 - `AetherCopy/src/FilterBuilder/FilterBuilder.cpp` — сбор фильтра по опциям CLI
-- `AetherCopy/src/cli/CliHandler.cpp/.h` — парсинг CLI и запуск
+- `AetherCopy/src/cli/CliHandler.cpp` / `CliHandler.hpp` — парсинг CLI и запуск
 - `AetherCopy/src/ThreadPool.cpp` — пул потоков
-- `AetherCopy/src/copiers/SyncCopier.cpp` — копирование файлов
+- `AetherCopy/include/aethercopy/copiers/SyncCopier.hpp` / `SyncCopier.cpp` — копирование файлов
+- `AetherCopy/include/aethercopy/copiers/IoURingCopier.hpp` / `IoURingCopier.cpp` — io_uring копировщик
 
 ## TODO
 - [ ] Отдельные опции для конкретных популярных mime
