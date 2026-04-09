@@ -48,6 +48,21 @@ CliHandler::CliHandler()
     app_.add_option("-t,--threads", opts_.threads, "Number of threads")
         ->default_val(4)
         ->check(CLI::Range(1, maxThreads));
+
+    app_.add_option(
+            "-e, --entries",
+            opts_.ring_entries,
+            "io_uring queue size (default: 512)"
+    )
+        ->check(CLI::Range(1, 4096));
+
+    // chunk_size — размер куска для копирования
+    app_.add_option(
+            "-c, --chunk-size",
+            opts_.chunk_size,
+            "Copy chunk size in bytes (default: 64MB, supports K/M/G suffix)"
+    )
+        ->transform(CLI::AsSizeValue(true));
 }
 
 BackupOptions CliHandler::parse(int argc, char** argv)

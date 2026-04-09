@@ -27,6 +27,9 @@ struct BackupOptions
     bool includeAll{ false };
 
     std::vector<std::string> includeMimes;
+
+    size_t ring_entries{ 512 };
+    size_t chunk_size{ 64 * 1024 * 1024 };
 };
 
 class CliHandler

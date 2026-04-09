@@ -77,14 +77,14 @@ endif()
 # ============================================
 # ПРОГРАММА
 # ============================================
-add_executable(aethercopycli src/main.cpp
+add_executable(aethercopy src/main.cpp
     src/cli/CliHandler.h
     src/cli/CliHandler.cpp
     src/FilterBuilder/FilterBuilder.hpp
     src/FilterBuilder/FilterBuilder.cpp
 )
 
-target_link_libraries(aethercopycli PRIVATE
+target_link_libraries(aethercopy PRIVATE
     libaethercopy
     CLI11::CLI11
 )
