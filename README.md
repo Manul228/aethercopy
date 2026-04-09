@@ -41,6 +41,9 @@ $ cd build
 $ cmake .. -DBUILD_TEST=OFF
 $ make aethercopycli
 $ ./aethercopycli --help
+
+# боевой
+cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_LOGGING_LIB=OFF -DENABLE_LOGGING_TESTS=OFF
 ```
 
 ## Использование
