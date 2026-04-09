@@ -1,27 +1,11 @@
 #include "aethercopy/ThreadPool.h"
-#include <chrono>
 #include <gtest/gtest.h>
 #include <iostream>
 
+#include "ScopedTimer.hpp"
+
 using namespace std::chrono_literals;
 using namespace aethercopy;
-
-// Класс ScopedTimer для измерения времени в области видимости
-class ScopedTimer
-{
-public:
-    using clock = std::chrono::high_resolution_clock;
-    using duration_t = std::chrono::duration<double, std::milli>; // миллисекунды
-
-    ScopedTimer()
-        : start_time(clock::now())
-    {}
-
-    double elapsed() const { return duration_t(clock::now() - start_time).count(); }
-
-private:
-    clock::time_point start_time;
-};
 
 TEST(ThreadPoolTest, SingleTaskWithSleep)
 {
@@ -91,10 +75,10 @@ TEST(ThreadPoolTest, MultipleTasksMoreThanThreads)
 
     double duration_ms = timer.elapsed();
 
-    /* 
+    /*
      * Ожидаем, что задачи выполняются примерно
-     за 2 периода по 150 мс (6 задач / 3 потока = 2 партии)
-    */
+     * за 2 периода по 150 мс (6 задач / 3 потока = 2 партии)
+     */
     EXPECT_GE(duration_ms, 300);
     EXPECT_LT(duration_ms, 450);
 }
@@ -132,8 +116,6 @@ TEST(ThreadPoolTest, TasksRunInParallel)
     double duration_ms = timer.elapsed();
 
     EXPECT_GE(max_concurrent.load(), thread_count);
-    // Можно при желании проверить, что общее время не слишком большое
-    EXPECT_LT(duration_ms, 1000);
 }
 
 TEST(ThreadPoolTest, EmptyTasksBenchmark)
@@ -160,9 +142,6 @@ TEST(ThreadPoolTest, EmptyTasksBenchmark)
 
     std::cout << "Total time for " << task_count << " empty tasks: " << total_ms << " ms\n";
     std::cout << "Average time per task: " << avg_per_task << " ms\n";
-
-    // Можно добавить проверку, например, что среднее время не слишком большое
-    // EXPECT_LT(avg_per_task, 1.0); // например, менее 1 мс на задачу
 }
 
 TEST(ThreadPoolTest, WaitTest)

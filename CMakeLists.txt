@@ -33,9 +33,10 @@ add_library(libaethercopy STATIC
 
     include/aethercopy/copiers/ICopier.h
     include/aethercopy/copiers/SyncCopier.h
-    include/aethercopy/copiers/IoUringCopier.hpp
     src/copiers/SyncCopier.cpp
 
+    include/aethercopy/copiers/IoURingCopier.hpp
+    src/copiers/IoURingCopier.cpp
 
 
     include/aethercopy/BackupEngine.h
@@ -44,7 +45,7 @@ add_library(libaethercopy STATIC
     include/aethercopy/ArchiveHandlers/IArchiveHandler.h
     include/aethercopy/ArchiveHandlers/LibarchiveArchiveHandler.h
     src/ArchiveHandlers/LibarchiveArchiveHandler.cpp
-    include/aethercopy/copiers/IoURing.hpp
+
 
 )
 
@@ -63,6 +64,16 @@ target_link_libraries(libaethercopy PUBLIC
     absl::log
 )
 
+if(ENABLE_LOGGING_LIB)
+    target_compile_definitions(libaethercopy PRIVATE
+        ABSL_MIN_LOG_LEVEL=0
+    )
+else()
+    target_compile_definitions(libaethercopy PRIVATE
+        ABSL_MIN_LOG_LEVEL=1000
+    )
+endif()
+
 # ============================================
 # ПРОГРАММА
 # ============================================
@@ -79,37 +90,43 @@ target_link_libraries(aethercopycli PRIVATE
 )
 
 # ============================================
-# ЛОГИРОВАНИЕ
-# ============================================
-add_definitions(-DABSL_MIN_LOG_LEVEL=3)
-
-# ============================================
 # ТЕСТЫ
 # ============================================
 if(BUILD_TESTS)
-    find_package(GTest REQUIRED)
-    add_definitions(-DTEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data/")
-    add_executable(aethercopy_tests
+  find_package(GTest REQUIRED)
+  add_definitions(-DTEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data/")
+  add_executable(aethercopy_tests
         tests/TestFormatFilter.cpp
         tests/TestThreadPool.cpp
         tests/TestBackupEngine.cpp
         tests/TestLibarchiveHandler.cpp
-        tests/TestIoURing.cpp
+
         tests/TestIoUringCopier.cpp
+        tests/ScopedTimer.hpp
     )
 
-    target_link_libraries(aethercopy_tests
+  target_link_libraries(aethercopy_tests
         libaethercopy
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
     )
 
-    target_include_directories(aethercopy_tests PRIVATE
+  target_include_directories(aethercopy_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
 
-    enable_testing()
-    add_test(NAME aethercopy_tests COMMAND aethercopy_tests)
+    if(ENABLE_LOGGING_TESTS)
+        target_compile_definitions(aethercopy_tests PRIVATE
+            ABSL_MIN_LOG_LEVEL=0
+        )
+    else()
+        target_compile_definitions(aethercopy_tests PRIVATE
+            ABSL_MIN_LOG_LEVEL=1000
+        )
+    endif()
+
+  enable_testing()
+  add_test(NAME aethercopy_tests COMMAND aethercopy_tests)
 endif()

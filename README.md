@@ -14,6 +14,26 @@ cmake .. -DBUILD_TEST=ON
 make aethercopy_tests
 ```
 
+## Логирование
+```bash
+# Без логов (по умолчанию)
+cmake -B build
+cmake --build build
+
+# С логами в библиотеке
+cmake -B build -DENABLE_LOGGING_LIB=ON
+cmake --build build
+
+# С логами в тестах
+cmake -B build -DENABLE_LOGGING_TESTS=ON
+cmake --build build
+
+# С логами везде
+cmake -B build -DENABLE_LOGGING_LIB=ON -DENABLE_LOGGING_TESTS=ON
+cmake --build build
+
+```
+
 ## Сборка и запуск утилиты
 ```bash
 $ cd build
@@ -80,5 +100,9 @@ OPTIONS:
 ## TODO
 - [ ] Распаковывать маленькие архивы в оперативной памяти
 - [ ] Копирование через io_uring
+  - [x] Базовый асинхронный копировщик
+  - [ ] Дождаться версии liburing 2.16 и переписать на io_uring_prep_copy_file_range
+  - [ ] Разобраться с исчерпанием SQ. Возможно в силу предыдущего пункта не понадобится
+  - [ ] Прямые дескрипторы и SQPOLL
 - [ ] Лог соответствия файла и его пути
 - [ ] Опция сохранения исходной файловой структуры
