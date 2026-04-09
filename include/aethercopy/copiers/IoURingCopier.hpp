@@ -115,6 +115,7 @@ class IoURingCopier : public ICopier
     std::mutex   ring_mutex_;
 
     std::mutex              jobs_mutex_;
+    // для ожидания завершения
     std::condition_variable jobs_done_;
 
     const size_t chunk_size_;

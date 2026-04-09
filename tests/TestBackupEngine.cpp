@@ -67,6 +67,7 @@ TEST_F(BackupEngineTest, IoURingCopierDoesActual)
     );
     engine->processDirectory(testSource_);
     engine->wait();
+    // это надо будет всунуть в engine->wait()
     copier->wait_complete();
 
     EXPECT_TRUE(fs::exists(testTarget_ + "/images/"));
