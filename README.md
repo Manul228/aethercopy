@@ -37,27 +37,12 @@ cmake --build build
 
 ## Сборка и запуск утилиты
 ```bash
-$ cd build
-$ cmake .. -DBUILD_TEST=OFF
-$ make aethercopycli
-$ ./aethercopycli --help
-
-# боевой
+cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_LOGGING_LIB=OFF -DENABLE_LOGGING_TESTS=OFF
+make aethercopy
+./aethercopy --help
+# боевой
 ```
-
-## Использование
-```bash
-# Только PDF и JPEG
-./aethercopycli ~/Docs ~/backup --mime application/pdf --mime image/jpeg
-
-# Офисные документы + ещё какой-то специфичный MIME
-./aethercopycli ~/Docs ~/backup --office --mime application/x-some-custom
-
-# Можно комбинировать с группами
-./aethercopycli ~/Media ~/backup --images --videos --mime image/webp
-```
-
 ## Аргументы
 ```
 aethercopy [OPTIONS] source target
@@ -85,6 +70,19 @@ OPTIONS:
                               Copy chunk size in bytes (default: 64MB, supports K/M/G suffix)
 ```
 
+## Использование
+```bash
+# Только PDF и JPEG
+./aethercopy ~/Docs ~/backup --mime application/pdf --mime image/jpeg
+
+# Офисные документы + ещё какой-то специфичный MIME
+./aethercopy ~/Docs ~/backup --office --mime application/x-some-custom
+
+# Можно комбинировать с группами
+./aethercopy ~/Media ~/backup --images --videos --mime image/webp
+```
+
+
 ## Архитектура и как это работает
 
 - `BackupEngine` — координирует копирование файлов и обработку архивов. В случае архивов он распаковывает во временную директорию и повторно обходит содержимое.
@@ -108,6 +106,7 @@ OPTIONS:
 - `AetherCopy/include/aethercopy/copiers/IoURingCopier.hpp` / `IoURingCopier.cpp` — io_uring копировщик
 
 ## TODO
+- [ ] Лог соответствия файла и его пути
 - [ ] Отдельные опции для конкретных популярных mime
 - [ ] Распаковывать маленькие архивы в оперативной памяти
 - [ ] Копирование через io_uring
@@ -115,5 +114,4 @@ OPTIONS:
   - [ ] Дождаться версии liburing 2.16 и переписать на io_uring_prep_copy_file_range
   - [ ] Разобраться с исчерпанием SQ. Возможно в силу предыдущего пункта не понадобится
   - [ ] Прямые дескрипторы и SQPOLL
-- [ ] Лог соответствия файла и его пути
 - [ ] Опция сохранения исходной файловой структуры
